@@ -67,7 +67,14 @@ should automatically open a setup page (or visit `http://192.168.4.1`
 yourself). From there you can:
 
 - **Connect Folloup to your WiFi** — scan for networks, pick yours, enter
-  the password.
+  the password. Folloup only works with 2.4 GHz networks.
+- **Save more networks** — under **Saved Networks**, add other networks
+  by name and password, e.g. your phone's hotspot, even if they aren't in
+  range right now. Folloup remembers up to five and tries them in the
+  listed order: when one can't be reached, it moves on to the next, so it
+  joins your home WiFi at home and your hotspot on the go. **Remove**
+  deletes a network from the list. On a phone hotspot, turn on the 2.4 GHz
+  option (on iPhone: "Maximize Compatibility").
 - **Add your Gemini API key** — this is what powers transcription and
   summaries. Without it, recordings still save to the SD card, they just
   won't be transcribed.
@@ -77,7 +84,8 @@ yourself). From there you can:
 You can come back to WiFi and time settings later from the device itself
 (see [Settings](#settings) below — they're the Network and Time pages in
 the Settings hub) — the setup portal is only needed the first time, or if
-you want to change your Gemini key.
+you want to change your Gemini key or your list of saved networks (turn on
+**Access Point** on the Network page to reach the portal again).
 
 ## Recording a thought
 
@@ -274,7 +282,9 @@ From the top:
    it needs one (there's a show/hide toggle for what you've typed), and
    press **Connect**. If you're already connected to the highlighted
    network, that same button reads **Disconnect** instead. Use **Scan**
-   to refresh the list.
+   to refresh the list. A network you connect to is added to your saved
+   networks; if you have several saved, Folloup switches to the next one
+   on its own whenever the current one is out of range.
 
 ### Time
 
