@@ -114,6 +114,10 @@ This is the core interaction:
    then either a transcript being saved or a note that transcription
    failed. Topic and Discard skip this: Topic transcribes immediately to
    produce its name (see above), and Discard has nothing to transcribe.
+   The transcript is in whatever language you spoke — nothing gets
+   translated — and summaries come back in the language of your
+   recordings. The screen only has plain Latin letters, so umlauts and
+   accents are spelled out (ä → ae, ß → ss, é → e).
 
 **If you're offline when you record**, the clip still saves to the SD
 card — it just gets marked as pending. The moment Folloup reconnects to

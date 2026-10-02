@@ -60,10 +60,9 @@ constexpr const char* kUploadUrl =
     "https://generativelanguage.googleapis.com/upload/v1beta/files";
 constexpr const char* kAudioMimeType = "audio/wav";
 constexpr const char* kTranscriptPrompt =
-    "Transcribe the provided Japanese audio and provide a concise summary of the content in English."
-    "Constraints:"
-    "- Output only the English summary text."
-    "- Do not add any suggestions, advice, formatting, follow-up questions, or conversational remarks.";
+    "Generate a verbatim transcript of the speech in this audio, in the language it is spoken "
+    "in. Do not translate. Respond with transcript text only. Do not add suggestions, advice, "
+    "formatting, follow-up questions, or conversational remarks.";
 constexpr int kTranscribeTimeoutMs = 30000;
 constexpr size_t kHttpUploadChunkSamples = 2048;
 
@@ -934,6 +933,79 @@ std::string BuildTextRequestBody(const std::string& prompt, bool include_generat
     return body;
 }
 
+// The e-paper fonts only carry printable ASCII, so anything else would render as '?'
+// per UTF-8 byte. Fold the characters German (and most Western European) text needs
+// into ASCII spellings before the text is stored and shown: umlauts become ae/oe/ue,
+// accents drop, typographic quotes/dashes become their plain forms.
+std::string FoldToDisplayAscii(const std::string& text)
+{
+    static constexpr const char* kLatin1Supplement[64] = {
+        // U+00C0..U+00FF
+        "A", "A", "A", "A", "Ae", "A", "Ae", "C", "E", "E", "E", "E", "I", "I", "I", "I",
+        "D", "N", "O", "O", "O", "O", "Oe", "x", "O", "U", "U", "U", "Ue", "Y", "Th", "ss",
+        "a", "a", "a", "a", "ae", "a", "ae", "c", "e", "e", "e", "e", "i", "i", "i", "i",
+        "d", "n", "o", "o", "o", "o", "oe", "/", "o", "u", "u", "u", "ue", "y", "th", "y",
+    };
+    std::string out;
+    out.reserve(text.size());
+    for (size_t i = 0; i < text.size();) {
+        const auto byte = static_cast<unsigned char>(text[i]);
+        if (byte < 0x80) {
+            out.push_back(static_cast<char>(byte));
+            ++i;
+            continue;
+        }
+        size_t length = byte >= 0xF0 ? 4 : byte >= 0xE0 ? 3 : byte >= 0xC0 ? 2 : 1;
+        if (i + length > text.size()) {
+            length = text.size() - i;
+        }
+        uint32_t codepoint = length == 1 ? 0xFFFD : byte & (0xFF >> (length + 1));
+        for (size_t k = 1; k < length; ++k) {
+            codepoint = (codepoint << 6) | (static_cast<unsigned char>(text[i + k]) & 0x3F);
+        }
+        i += length;
+
+        if (codepoint >= 0xC0 && codepoint <= 0xFF) {
+            out += kLatin1Supplement[codepoint - 0xC0];
+            continue;
+        }
+        switch (codepoint) {
+            case 0xA0:
+                out += ' ';
+                break;
+            case 0xAB:
+            case 0xBB:
+            case 0x201C:
+            case 0x201D:
+            case 0x201E:
+                out += '"';
+                break;
+            case 0x2018:
+            case 0x2019:
+            case 0x201A:
+                out += '\'';
+                break;
+            case 0x2013:
+            case 0x2014:
+                out += '-';
+                break;
+            case 0x2026:
+                out += "...";
+                break;
+            case 0x20AC:
+                out += "EUR";
+                break;
+            case 0x1E9E:
+                out += "SS";
+                break;
+            default:
+                out += '?';
+                break;
+        }
+    }
+    return out;
+}
+
 // Concatenate the text of every part in candidates[0].content.parts[].
 std::string ExtractCandidateText(cJSON* root)
 {
@@ -963,7 +1035,7 @@ std::string ExtractCandidateText(cJSON* root)
         const std::string part_text = JsonStringField(part, "text");
         text += part_text;
     }
-    return text;
+    return FoldToDisplayAscii(text);
 }
 
 std::string JsonNestedStringField(cJSON* root, const char* first, const char* second)

@@ -142,6 +142,7 @@ std::string BuildSummaryInstructionText(SummaryKind kind, bool intermediate)
                       "blockers, noting completion state when it is clear from the source. Keep it "
                       "concise, factual, and easy to skim. Avoid markdown tables.\n\n";
     }
+    text += "Write the summary in the same language as the transcripts.\n\n";
     return text;
 }
 
